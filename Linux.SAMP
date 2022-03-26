@@ -1,0 +1,5 @@
+CXX : g++
+CC : gcc
+OUT : main
+CXX_OPTS : -std=c++17
+LINK_OPTS : 
