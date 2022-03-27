@@ -8,14 +8,30 @@ public:
 	std::function<typename W::element(typename V::element)> func;
 	V vval;
 	W wval;
-	bool isLinear(){
-		if(func){
-			return(true);
+	bool isLinear(){//very rough.  just checks some common ways that it could fail.  does not use a CAS, just checks values.
+		if(!func){
+			return(false);
 		}
-		return(false);
+		for(auto& a : vval.Basis){
+			for(auto& b : vval.Basis){
+				if(func(a+b) != func(a) + func(b)){
+					return(false);
+				}
+			}
+		}
+		std::vector<double> interestingScalars = {-1, 0, 1, 2, 10, 3.14, 100, 1000, 2048, 100000};
+		for(auto& a : vval.Basis){
+			for(auto& c : interestingScalars){
+				if(func(a*c) != func(a) * c){
+					return(false);
+				}
+			}
+		}
+		return(true);
 	}
 	Matrix getMatRep(){
 		if(!isLinear()){
+			std::cout<<"Error:  transformation is not linear."<<std::endl;
 			return(Matrix(0,0));
 		}
 		Matrix output;

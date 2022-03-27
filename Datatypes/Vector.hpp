@@ -27,7 +27,29 @@ public:
 	bool operator==(const Vector& o){
 		return(data == o.data);
 	}
+	bool operator!=(const Vector& o){
+		return(data != o.data);
+	}
 	double operator[](unsigned int i){
 		return(data[i]);
+	}
+	Vector operator*(double c){
+		Vector o;
+		o.data = data;
+		for(int i=0;i<data.size();i++){
+			o.data[i] *= c;
+		}
+		return(o);
+	}
+	Vector operator+(const Vector& b){
+		if(b.data.size() != data.size()){
+			return(Vector());
+		}
+		Vector o;
+		o.data = data;
+		for(int i=0;i<o.data.size();i++){
+			o.data[i] += b.data[i];
+		}
+		return(o);
 	}
 };
