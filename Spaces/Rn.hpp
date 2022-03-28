@@ -1,16 +1,19 @@
 #pragma once
 #include "../Space.hpp"
 #include "../Datatypes/Vector.hpp"
-#include <array>
+#include <vector>
 
-template <unsigned int n> class Real : public Space{
+class Real : public Space{
 public:
 	typedef Vector element;
+	unsigned int n;
 	unsigned int Dim(){
 		return(n);
 	}
-	std::array<Vector, n> Basis;
-	Real(){
+	std::vector<Vector> Basis;
+	Real(unsigned int _n){
+		n = _n;
+		Basis.resize(n);
 		for(unsigned int i=0;i<n;i++){
 			std::vector<double> elem;
 			elem.resize(n);
@@ -24,8 +27,10 @@ public:
 			Basis[i] = Vector(elem);
 		}
 	}
-	std::array<std::pair<unsigned int, double>, n> Decompose(Vector& vec){
-		std::array<std::pair<unsigned int, double>, n> output;
+	Real(){}
+	std::vector<std::pair<unsigned int, double>> Decompose(Vector& vec){
+		std::vector<std::pair<unsigned int, double>> output;
+		output.resize(n);
 		for(unsigned int i=0;i<n;i++){
 			std::pair<unsigned int, double> t;
 			t.first = i;

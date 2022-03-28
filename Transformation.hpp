@@ -2,8 +2,9 @@
 #include <iostream>
 #include <functional>
 #include <type_traits>
+#include "Transformation_base.hpp"
 
-template<class V, class W> class Transformation{
+template<class V, class W> class Transformation : public Trs_base{
 public:
 	std::function<typename W::element(typename V::element)> func;
 	V vval;
@@ -50,7 +51,9 @@ public:
 		}
 		return(output.transpose());
 	}
-	Transformation(std::function<typename W::element(typename V::element)> f){
+	Transformation(const V& _v, const W& _w, std::function<typename W::element(typename V::element)> f){
+		vval = _v;
+		wval = _w;
 		if(f){
 			func = f;
 		}

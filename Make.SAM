@@ -1,5 +1,7 @@
 OBJS = Space.cpp.o \
-       main.cpp.o 
+       main.cpp.o \
+       Parse.cpp.o \
+       Transformation_base.cpp.o
 
 all: $(OBJS)
 	{CXX} {CXX_OPTS} {LINK_OPTS} $(OBJS) -o {OUT}

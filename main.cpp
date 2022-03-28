@@ -2,6 +2,7 @@
 #include "Spaces/Rn.hpp"
 #include "Spaces/MnxmR.hpp"
 #include "Transformation.hpp"
+#include "Parse.hpp"
 
 Vector identity(Vector n){
 	return(n);
@@ -30,16 +31,23 @@ Vector sq(Vector n){
 }
 
 int main() {
+	Real r3(3);
 	std::cout<<"R^3 Identity transformation:"<<std::endl;
-	Transformation<Real<3>, Real<3>> id_tr(identity);
+	Transformation<Real, Real> id_tr(r3, r3, identity);
 	id_tr.getMatRep().print();
 	std::cout<<"Example from class: T:R^2->R^3 T(a1, a2) = (a1+3*a2, 0, 2a1-4a2)"<<std::endl;
-	Transformation<Real<2>, Real<3>> tr(ex);
+	Real r2(2);
+	Transformation<Real, Real> tr(r2, r3, ex);
 	tr.getMatRep().print();
 	std::cout<<"Mat 3x3 transpose:"<<std::endl;
-	Transformation<MatR<3,3>, MatR<3,3>> tr2(tran);
+	MatR mat3x3(3, 3);
+	Transformation<MatR, MatR> tr2(mat3x3, mat3x3,tran);
 	tr2.getMatRep().print();
 	std::cout<<"T:R->R T(x)=x^2 (note: not linear)"<<std::endl;
-	Transformation<Real<1>, Real<1>> sq_tr(sq);
+	Real r1(1);
+	Transformation<Real, Real> sq_tr(r1, r1, sq);
 	sq_tr.getMatRep().print();
+	Parser p;
+	auto p_tr = p.parseFromStr("T:R^3->R^3 T(x)=x");
+	p_tr->getMatRep().print();
 }
