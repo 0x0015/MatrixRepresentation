@@ -6,6 +6,7 @@
 #include "Spaces/Rn.hpp"
 #include "Spaces/MnxmR.hpp"
 #include "Transformation.hpp"
+#include "Runner.hpp"
 
 class Trs_base;
 
@@ -15,6 +16,7 @@ class Parser{
 public:
 	std::shared_ptr<Trs_base> parseFromStr(const std::string& s);
 	std::shared_ptr<Trs_base> determineType1(const std::string& name, const std::string& ty1, const std::string& ty2, const std::string& body);
+	Func_runner runner;
 	template<class T> T createSpace(const std::string& ty){
 		if constexpr (std::is_same_v<T, Real>){
 			if(ty.find("x") != std::string::npos){
@@ -51,6 +53,20 @@ public:
 			std::cerr<<"Unable to determine lhs and rhs of equation."<<std::endl;
 			return(std::make_shared<Trs_base>());
 		}
+		//lhs
+		if(!(eq_spl[0].substr(0, name.length()) == name)){
+			std::cerr<<"Failed to match function name: "<<eq_spl[0].substr(0, name.length())<<" and "<<name<<std::endl;
+		}
+		std::string args = eq_spl[0].substr(name.length()+1, eq_spl[0].length()-name.length()-2);
+		if(args.find(",") == std::string::npos){
+			//arg is a vector or matrix type
+		}else{
+			std::vector<std::string> args_spl = SplitString(args, ",");
+			//multiple args, presumably of scalar type
+		}
+		//rhs
+		//basic plan: tokenize, parse brackets, loop through recursively.
+		//function construction
 		T1 V = createSpace<T1>(ty1);
 		T2 W = createSpace<T2>(ty2);
 		std::function<typename T2::element(typename T1::element)> func = [&](typename T1::element x){

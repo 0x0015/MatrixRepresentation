@@ -1,6 +1,7 @@
 OBJS = Space.cpp.o \
        main.cpp.o \
        Parse.cpp.o \
+       Runner.cpp.o \
        Transformation_base.cpp.o
 
 all: $(OBJS)
