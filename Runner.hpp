@@ -37,6 +37,7 @@ public:
 	Matrix tempMatrix;//effectively registers for unnamed rets
 	std::vector<std::shared_ptr<Func_step>> steps;
 	template<class T> void setVar(const std::string& name, const T& val){
+		//std::cout<<"Setting var:  "<<name<<std::endl;
 		if constexpr(std::is_same_v<T, double>){
 			if(vectors.count(name) != 0 || matrices.count(name) != 0){
 				std::cerr<<"Cannot create variable with already used name."<<std::endl;
@@ -76,29 +77,42 @@ class variableIdentifier{
 public:
 	std::string name;
 	uint8_t tempType = 0;//0 = none, 1 = scalar, 2 = vector, 3 = matrix
+	uint8_t literalType = 0;//same as above
+	double dLiteral;
+	Vector vLiteral;
+	Matrix mLiteral;
 	variableIdentifier();
 	variableIdentifier(const std::string& n);
 	variableIdentifier(uint8_t temp);
+	variableIdentifier(double literal);
+	variableIdentifier(const Vector& literal);
+	variableIdentifier(const Matrix& literal);
 	uint8_t getType(const Func_runner* runner);
 	template<class T> std::optional<T> getValue(Func_runner* runner){
-		if(tempType == 0){
+		if(tempType == 0 && literalType == 0){
 			return(runner->getVar<T>(name));
 		}else{
 			if constexpr(std::is_same_v<T, double>){
 				if(tempType == 1){
 					return(runner->tempScalar);
+				}else if(literalType == 1){
+					return(dLiteral);
 				}else{
 					return(std::nullopt);
 				}
 			}else if constexpr(std::is_same_v<T, Vector>){
 				if(tempType == 2){
 					return(runner->tempVector);
+				}else if(literalType == 2){
+					return(vLiteral);
 				}else{
 					return(std::nullopt);
 				}
 			}else if constexpr(std::is_same_v<T, Matrix>){
 				if(tempType == 3){
 					return(runner->tempMatrix);
+				}else if(literalType == 3){
+					return(mLiteral);
 				}else{
 					return(std::nullopt);
 				}
@@ -156,4 +170,24 @@ public:
 	void apply();
 	Func_step_loadFromTemp();
 	Func_step_loadFromTemp(const variableIdentifier& a1, const std::string& n);
+};
+
+template<class T> class Func_step_loadToReg : public Func_step{
+public:
+	T val;
+	void apply(){
+		if constexpr(std::is_same_v<T, double>){
+			runner->tempScalar = val;
+		}else if constexpr(std::is_same_v<T, Vector>){
+			runner->tempVector = val;
+		}else if constexpr(std::is_same_v<T, Matrix>){
+			runner->tempMatrix = val;
+		}else{	
+			std::cerr<<"Unknown type: typeid:  "<<typeid(T).name()<<std::endl;
+		}
+	}
+	Func_step_loadToReg(){}
+	Func_step_loadToReg(const T& v){
+		val = v;
+	}
 };

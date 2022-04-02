@@ -30,6 +30,11 @@ public:
 	Real(){}
 	std::vector<std::pair<unsigned int, double>> Decompose(Vector& vec){
 		std::vector<std::pair<unsigned int, double>> output;
+		if(vec.data.size() != n){
+			std::cerr<<"Error: cannot decompose a vector which does not have the same dimension as the space. vec = ";
+			vec.print();
+			return(output);
+		}
 		output.resize(n);
 		for(unsigned int i=0;i<n;i++){
 			std::pair<unsigned int, double> t;

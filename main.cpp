@@ -47,7 +47,11 @@ int main() {
 	Real r1(1);
 	Transformation<Real, Real> sq_tr(r1, r1, sq);
 	sq_tr.getMatRep().print();
+	std::string custom_tr = "T:R^3->R^3 T(x)=2*x";
+	std::cout<<"Custom transformation: "<<custom_tr<<std::endl;
 	Parser p;
-	auto p_tr = p.parseFromStr("T:R^3->R^3 T(x)=x");
+	auto p_tr = p.parseFromStr(custom_tr);
+	//std::static_pointer_cast<Transformation<Real, Real>>(p_tr)->func(Vector({1,2,3})).print();
+	//std::static_pointer_cast<Transformation<Real, Real>>(p_tr)->func(Vector({0,-1,2})).print();
 	p_tr->getMatRep().print();
 }

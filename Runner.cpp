@@ -26,9 +26,26 @@ variableIdentifier::variableIdentifier(uint8_t temp){
 	tempType = temp;
 }
 
+variableIdentifier::variableIdentifier(double literal){
+	dLiteral = literal;
+	literalType = 1;
+}
+
+variableIdentifier::variableIdentifier(const Vector& literal){
+	vLiteral = literal;
+	literalType = 2;
+}
+
+variableIdentifier::variableIdentifier(const Matrix& literal){
+	mLiteral = literal;
+	literalType = 3;
+}
+
 uint8_t variableIdentifier::getType(const Func_runner* runner){
 	if(tempType != 0){
 		return(tempType);
+	}else if(literalType != 0){
+		return(literalType);
 	}else{
 		if(runner->scalars.count(name) != 0){
 			return(1);
@@ -226,7 +243,7 @@ void Func_step_mul::apply(){
 			}
 		}
 	}else{
-		std::cerr<<"Error: mul does not have a scalar type"<<std::endl;
+		std::cerr<<"Error: mul does not have a scalar type ("<<(int)var1Type<<", "<<(int)var2Type<<")"<<std::endl;
 		return;
 	}
 }

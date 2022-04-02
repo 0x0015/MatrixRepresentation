@@ -2,7 +2,9 @@ OBJS = Space.cpp.o \
        main.cpp.o \
        Parse.cpp.o \
        Runner.cpp.o \
-       Transformation_base.cpp.o
+       Transformation_base.cpp.o \
+       Parser/stage1/brackets.cpp.o \
+       Parser/stage1/bracketType.cpp.o
 
 all: $(OBJS)
 	{CXX} {CXX_OPTS} {LINK_OPTS} $(OBJS) -o {OUT}
