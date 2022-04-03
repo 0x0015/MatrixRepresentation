@@ -172,22 +172,10 @@ public:
 	Func_step_loadFromTemp(const variableIdentifier& a1, const std::string& n);
 };
 
-template<class T> class Func_step_loadToReg : public Func_step{
+class Func_step_loadToReg : public Func_step{
 public:
-	T val;
-	void apply(){
-		if constexpr(std::is_same_v<T, double>){
-			runner->tempScalar = val;
-		}else if constexpr(std::is_same_v<T, Vector>){
-			runner->tempVector = val;
-		}else if constexpr(std::is_same_v<T, Matrix>){
-			runner->tempMatrix = val;
-		}else{	
-			std::cerr<<"Unknown type: typeid:  "<<typeid(T).name()<<std::endl;
-		}
-	}
-	Func_step_loadToReg(){}
-	Func_step_loadToReg(const T& v){
-		val = v;
-	}
+	variableIdentifier val;
+	void apply();
+	Func_step_loadToReg();
+	Func_step_loadToReg(const variableIdentifier& v);
 };

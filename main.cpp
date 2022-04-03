@@ -51,7 +51,15 @@ int main() {
 	std::cout<<"Custom transformation: "<<custom_tr<<std::endl;
 	Parser p;
 	auto p_tr = p.parseFromStr(custom_tr);
-	//std::static_pointer_cast<Transformation<Real, Real>>(p_tr)->func(Vector({1,2,3})).print();
-	//std::static_pointer_cast<Transformation<Real, Real>>(p_tr)->func(Vector({0,-1,2})).print();
 	p_tr->getMatRep().print();
+	std::string custom_tr2 = "T:R^3->R^3 T(x)=2*(3*x)";
+	std::cout<<"Custom transformation 2: "<<custom_tr2<<std::endl;
+	Parser p2;
+	auto p2_tr = p2.parseFromStr(custom_tr2);
+	p2_tr->getMatRep().print();
+	std::string custom_tr3 = "T:R^2->R^2 T(x,y)=(2*x,0)";
+	std::cout<<"Custom transformation 3: "<<custom_tr3<<std::endl;
+	Parser p3;
+	auto p3_tr = p3.parseFromStr(custom_tr3);
+	p3_tr->getMatRep().print();
 }

@@ -100,7 +100,7 @@ void Func_step_add::apply(){
 			}
 		}
 	}else{
-		std::cerr<<"Error: add has unequal arguement types."<<std::endl;
+		std::cerr<<"Error: add has unequal arguement types. ("<<(int)var1.getType(runner)<<", "<<(int)var2.getType(runner)<<")"<<std::endl;
 		return;
 	}
 }
@@ -147,7 +147,7 @@ void Func_step_sub::apply(){
 			}
 		}
 	}else{
-		std::cerr<<"Error: sub has unequal arguement types."<<std::endl;
+		std::cerr<<"Error: sub has unequal arguement types. ("<<(int)var1.getType(runner)<<", "<<(int)var2.getType(runner)<<")"<<std::endl;
 		return;
 	}
 }
@@ -385,8 +385,43 @@ void Func_step_loadFromTemp::apply(){
 			runner->setVar<Matrix>(name, runner->tempMatrix);
 		}
 	}else{
-		std::cerr<<"Error: cannot load unknown variable."<<std::endl;
+		std::cerr<<"Error: cannot load unknown variable.  (name ="<<var.name<<")"<<std::endl;
 	}
+}
+
+void Func_step_loadToReg::apply(){
+	if(val.getType(runner) == 1){
+		auto dval = val.getValue<double>(runner);
+		if(dval){
+			runner->tempScalar = dval.value();
+		}else{
+			std::cerr<<"Unable to get variable value."<<std::endl;
+			return;
+		}
+	}else if(val.getType(runner) == 2){
+		auto vval = val.getValue<Vector>(runner);
+		if(vval){
+			runner->tempVector = vval.value();
+		}else{
+			std::cerr<<"Unable to get variable value."<<std::endl;
+			return;
+		}
+	}else if(val.getType(runner) == 3){
+		auto mval = val.getValue<Matrix>(runner);
+		if(mval){
+			runner->tempMatrix = mval.value();
+		}else{
+			std::cerr<<"Unable to get variable value."<<std::endl;
+			return;
+		}
+	}else{	
+		std::cerr<<"Unknown type: "<<(int)val.getType(runner)<<std::endl;
+	}
+}
+
+Func_step_loadToReg::Func_step_loadToReg(){}
+Func_step_loadToReg::Func_step_loadToReg(const variableIdentifier& v){
+	val = v;
 }
 
 Func_runner::Func_runner(){}

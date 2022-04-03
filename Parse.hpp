@@ -18,8 +18,9 @@ class Parser{
 public:
 	std::shared_ptr<Trs_base> parseFromStr(const std::string& s);
 	std::shared_ptr<Trs_base> determineType1(const std::string& name, const std::string& ty1, const std::string& ty2, const std::string& body);
-	void generateSteps(const std::string& body, const std::map<std::string, uint8_t>& args);
-	void parseBrackets(std::vector<bracketType>* brackets, const std::map<std::string, uint8_t>& args);
+	void generateSteps(const std::string& body, const std::vector<std::pair<std::string, uint8_t>>& args);
+	uint8_t parseBrackets(std::vector<bracketType>* brackets, const std::vector<std::pair<std::string, uint8_t>>& args, unsigned int& a, std::vector<std::pair<std::string, uint8_t>>& tempVars);
+	uint8_t parseCode(const std::vector<std::string>& code, const std::vector<std::pair<std::string, uint8_t>>& args, unsigned int& a, std::vector<std::pair<std::string, uint8_t>>& tempVars);
 	Func_runner runner;
 	template<class T> T createSpace(const std::string& ty){
 		if constexpr (std::is_same_v<T, Real>){
@@ -62,32 +63,33 @@ public:
 			std::cerr<<"Failed to match function name: "<<eq_spl[0].substr(0, name.length())<<" and "<<name<<std::endl;
 		}
 		std::string args = eq_spl[0].substr(name.length()+1, eq_spl[0].length()-name.length()-2);
-		std::map<std::string, uint8_t> arg_types;
+		std::vector<std::pair<std::string, uint8_t>> arg_types;
 		bool split_args = false;
 		if(args.find(",") == std::string::npos){
 			//arg is a vector or matrix type
 			uint8_t t1n = 0;
 			uint8_t t2n = 0;
-			if constexpr(std::is_same_v<T1, double>){
+			if constexpr(std::is_same_v<typename T1::element, double>){
 				t1n = 1;
-			}else if constexpr(std::is_same_v<T1, Vector>){
+			}else if constexpr(std::is_same_v<typename T1::element, Vector>){
 				t1n = 2;
-			}else if constexpr(std::is_same_v<T1, Matrix>){
+			}else if constexpr(std::is_same_v<typename T1::element, Matrix>){
 				t1n = 3;
 			}
-			if constexpr(std::is_same_v<T2, double>){
+			if constexpr(std::is_same_v<typename T2::element, double>){
 				t2n = 1;
-			}else if constexpr(std::is_same_v<T2, Vector>){
+			}else if constexpr(std::is_same_v<typename T2::element, Vector>){
 				t2n = 2;
-			}else if constexpr(std::is_same_v<T2, Matrix>){
+			}else if constexpr(std::is_same_v<typename T2::element, Matrix>){
 				t2n = 3;
 			}
-			arg_types[args] = t1n;
+			std::cout<<"t1n: "<<(int)t1n<<", "<<"t2n: "<<(int)t2n<<std::endl;
+			arg_types.push_back(std::make_pair(args, t1n));
 		}else{
 			std::vector<std::string> args_spl = SplitString(args, ",");
 			//multiple args, presumably of scalar type
 			for(auto& o : args_spl){
-				arg_types[o] = 1;
+				arg_types.push_back(std::make_pair(o, 1));
 			}
 			split_args = true;
 		}
@@ -103,7 +105,28 @@ public:
 				return(typename T2::element());
 			}
 			if(split_args){
-				//I'll have to get the items out of the vector(or matrix).  I'll do this later
+				//a single value should never be split
+				if constexpr(std::is_same_v<typename T1::element, Vector>){
+					if(arg_types.size() == x.data.size()){
+						for(unsigned int i=0;i<arg_types.size();i++){
+							if(arg_types[i].second == 1){
+								runner.setVar<double>(arg_types[i].first, x.data[i]);
+							}else{
+								std::cerr<<"Unable to split vector into nonscalar types."<<std::endl;
+								return(typename T2::element());
+							}
+						}
+					}else{
+						std::cerr<<"Unable to split vector into unequal sizes."<<std::endl;
+						return(typename T2::element());
+					}
+				}else if constexpr(std::is_same_v<typename T1::element, Matrix>){
+					std::cerr<<"Splitting up matrices is not yet supported."<<std::endl;
+					return(typename T2::element());
+				}else{
+					std::cerr<<"Unable to decompose into unknown type."<<std::endl;
+					return(typename T2::element());
+				}
 			}else{
 				runner.setVar<typename T1::element>(args, x);
 			}
