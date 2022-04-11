@@ -17,13 +17,7 @@ public:
 	Func_step();
 };
 
-class Func_step_func : public Func_step{
-public:
-	std::function<void(Func_runner*)> func;
-	void apply();
-	Func_step_func();
-	Func_step_func(std::function<void(Func_runner*)> f);
-};
+
 
 
 
@@ -37,20 +31,29 @@ public:
 	Matrix tempMatrix;//effectively registers for unnamed rets
 	std::vector<std::shared_ptr<Func_step>> steps;
 	template<class T> void setVar(const std::string& name, const T& val){
-		//std::cout<<"Setting var:  "<<name<<std::endl;
+		//std::cout<<"Setting var:  "<<name<<" typeid: "<<typeid(T).name()<<std::endl;
 		if constexpr(std::is_same_v<T, double>){
-			if(vectors.count(name) != 0 || matrices.count(name) != 0){
-				std::cerr<<"Cannot create variable with already used name."<<std::endl;
+			if(vectors.count(name) != 0){
+				std::cerr<<"Cannot create variable with already used name as vector. (sca)"<<std::endl;
+			}
+			if(matrices.count(name) != 0){
+				std::cerr<<"Cannot create variable with already used name as matrix. (sca)"<<std::endl;
 			}
 			scalars[name] = val;
 		}else if constexpr(std::is_same_v<T, Vector>){
-			if(scalars.count(name) != 0 || matrices.count(name) != 0){
-				std::cerr<<"Cannot create variable with already used name."<<std::endl;
+			if(matrices.count(name) != 0){
+				std::cerr<<"Cannot create variable with already used name as matrix. (vec)"<<std::endl;
+			}
+			if(scalars.count(name) != 0){
+				std::cerr<<"Cannot create variable with already used name as scalar. (vec)"<<std::endl;
 			}
 			vectors[name] = val;
 		}else if constexpr(std::is_same_v<T, Matrix>){
-			if(vectors.count(name) != 0 || scalars.count(name) != 0){
-				std::cerr<<"Cannot create variable with already used name."<<std::endl;
+			if(scalars.count(name) != 0){
+				std::cerr<<"Cannot create variable with already used name as scalar. (mat)"<<std::endl;
+			}
+			if(vectors.count(name) != 0){
+				std::cerr<<"Cannot create variable with already used name as vector. (mat)"<<std::endl;
 			}
 			matrices[name] = val;
 		}else{
@@ -88,7 +91,7 @@ public:
 	variableIdentifier(const Vector& literal);
 	variableIdentifier(const Matrix& literal);
 	uint8_t getType(const Func_runner* runner);
-	template<class T> std::optional<T> getValue(Func_runner* runner){
+	template<class T> std::optional<T> getValue(Func_runner* runner) const {
 		if(tempType == 0 && literalType == 0){
 			return(runner->getVar<T>(name));
 		}else{
@@ -121,6 +124,16 @@ public:
 			}
 		}
 	}
+};
+
+class Func_step_func : public Func_step{
+public:
+	variableIdentifier var;
+	std::function<void(Func_runner*, const variableIdentifier&)> func;
+	void apply();
+	Func_step_func();
+	Func_step_func(std::function<void(Func_runner*, const variableIdentifier&)> f, const variableIdentifier& v);
+	Func_step_func(std::function<void(Func_runner*, const variableIdentifier&)> f);
 };
 
 class Func_step_add : public Func_step{

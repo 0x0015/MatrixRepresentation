@@ -2,6 +2,8 @@
 #include "Transformation.hpp"
 #include "Tokenizer/Tokenizer.hpp"
 #include "Parser/stage1/brackets.hpp"
+#include <unordered_map>
+#include <cmath>
 
 std::vector<std::string> SplitString(std::string str,std::string delimeter){
     std::vector<std::string> splittedStrings = {};
@@ -21,8 +23,21 @@ std::vector<std::string> SplitString(std::string str,std::string delimeter){
 }
 
 std::shared_ptr<Trs_base> Parser::parseFromStr(const std::string& s){
-	std::vector<std::string> sec_spl = SplitString(s, " ");
-	if(sec_spl.size() != 2){
+	std::vector<std::string> sec_spl_t = SplitString(s, " ");
+	std::vector<std::string> sec_spl;
+	if(sec_spl_t.size() == 2){
+		sec_spl = sec_spl_t;
+	}else if(sec_spl_t.size() > 2){
+		sec_spl.push_back(sec_spl_t[0]);
+		std::string sec_spl_1;
+		for(unsigned int i=1;i<sec_spl_t.size();i++){
+			sec_spl_1 += sec_spl_t[i];
+			if(i+1 < sec_spl_t.size()){
+				sec_spl_1 += " ";
+			}
+		}
+		sec_spl.push_back(sec_spl_1);
+	}else{
 		std::cerr<<"Transformation does not have valid sections."<<std::endl;
 		return(std::make_shared<Trs_base>());
 	}
@@ -168,124 +183,136 @@ uint8_t Parser::parseBrackets(std::vector<bracketType>* source, const std::vecto
 	return(parseCode(postBr, args, tempCount, tempVars));
 }
 
+std::unordered_map<std::string, std::pair<std::function<void(Func_runner*, const variableIdentifier&)>, uint8_t>> builtins = {
+	{"sin", {[](Func_runner* f, const variableIdentifier& v){
+									auto val = v.getValue<double>(f);
+									if(val){
+										f->tempScalar = std::sin(val.value());
+									}
+								}, 1}},
+	{"cos", {[](Func_runner* f, const variableIdentifier& v){
+									auto val = v.getValue<double>(f);
+									if(val){
+										f->tempScalar = std::cos(val.value());
+									}
+								}, 1}},
+	{"tan", {[](Func_runner* f, const variableIdentifier& v){
+									auto val = v.getValue<double>(f);
+									if(val){
+										f->tempScalar = std::tan(val.value());
+									}
+								}, 1}},
+	{"tr", {[](Func_runner* f, const variableIdentifier& v){
+									auto val = v.getValue<Matrix>(f);
+									if(val){
+										f->tempMatrix = val.value().transpose();
+									}
+								}, 3}}
+};
+
+std::pair<variableIdentifier, uint8_t> Parser::getVar(const std::vector<std::string>& code, const std::vector<std::pair<std::string, uint8_t>>& args, unsigned int& tempCount, std::vector<std::pair<std::string, uint8_t>>& tempVars, uint8_t& lastType, unsigned int& i){
+	std::string tok = code[i];
+	if(tok == ""){
+		std::cerr<<"Fount blank token"<<std::endl;
+	}
+	variableIdentifier varI;
+	uint8_t type = 0;
+	if(argsContains(args, tok)){
+		type = argsFind(args, tok).second;
+		varI = variableIdentifier(tok);
+	}else if(isNumber(tok)){
+		type = 1;
+		varI = variableIdentifier(std::stod(tok));
+	}else if(argsContains(tempVars, tok)){
+		type = argsFind(tempVars, tok).second;
+		varI = variableIdentifier(tok);
+	}else if(builtins.find(tok) != 0 && i+1 < code.size()){
+		i++;
+		std::string nval = code[i];
+		auto [varP, pt] = getVar(code, args, tempCount, tempVars, lastType, i);
+		auto [func, t] = builtins[tok];
+		std::shared_ptr<Func_step_func> ts = std::make_shared<Func_step_func>(func, varP);
+		ts->runner = &runner;
+		runner.steps.push_back(ts);
+		type = t;
+	}else{
+		std::cerr<<"Unable to determine type.  defaulting to last type."<<std::endl;
+		varI = variableIdentifier(lastType);
+		type = lastType;
+	}
+	std::cout<<"returning type: "<<(int)type<<std::endl;
+	lastType = type;
+	return(std::make_pair(varI, type));
+}
+
 uint8_t Parser::parseCode(const std::vector<std::string>& code, const std::vector<std::pair<std::string, uint8_t>>& args, unsigned int& tempCount, std::vector<std::pair<std::string, uint8_t>>& tempVars){
 	//std::cout<<"Parsing code: "<<std::endl;
 	uint8_t lastType = 0;
-	if(code.size() == 1){
-		std::string tval = code[0];
-		variableIdentifier varI(tval);
-		if(isNumber(tval)){
-			lastType = 1;
-			varI = variableIdentifier(std::stod(tval));
-		}else if(argsContains(tempVars, tval)){
-			lastType = argsFind(tempVars, tval).second;
-		}else if(argsContains(args, tval)){
-			lastType = argsFind(args, tval).second;
-		}else{
-			std::cerr<<"Error failed to find multiplication second arg type."<<std::endl;
-		}
-		std::shared_ptr<Func_step_loadToReg> ts = std::make_shared<Func_step_loadToReg>(varI);
-		ts->runner = &runner;
-		runner.steps.push_back(ts);
-		//std::cout<<"Returning lastType: "<<(int)lastType<<std::endl;
-		return(lastType);
-	}
 	for(unsigned int i=0;i<code.size();i++){
-		std::string tval = code[i];
-		if(tval == "+"){
-			if(i >= 1 && i+1<code.size()){
-				std::string lval = code[i-1];
-				std::string nval = code[i+1];
-				if(i >= 2){
-					variableIdentifier var1;
-					if(argsContains(args, lval)){
-						uint8_t type = argsFind(args, lval).second;
-						var1 = variableIdentifier(type);
-						lastType = type;
-					}else{
-						continue;
-					}
-					variableIdentifier var2(nval);
-					std::shared_ptr<Func_step_add> ts = std::make_shared<Func_step_add>(var1, var2);
+		if(i == 0){
+			auto [varI, type] = getVar(code, args, tempCount, tempVars, lastType, i);
+			std::shared_ptr<Func_step_loadToReg> ts = std::make_shared<Func_step_loadToReg>(varI);
+			ts->runner = &runner;
+			runner.steps.push_back(ts);
+		}else{
+			std::string tval = code[i];
+			if(tval == "+"){
+				if(i+1 < code.size()){
+					i++;
+					std::string nval = code[i];
+					auto [varN, type] = getVar(code, args, tempCount, tempVars, lastType, i);
+					variableIdentifier varP = variableIdentifier(type);
+					std::shared_ptr<Func_step_add> ts = std::make_shared<Func_step_add>(varP, varN);
 					ts->runner = &runner;
 					runner.steps.push_back(ts);
-					i++;
-				}else{
-					variableIdentifier var1;
-					variableIdentifier var2;
-					//i == 1
-					if(isNumber(lval)){
-						double n = std::stod(lval);
-						var1 = variableIdentifier((double)n);
-						lastType = 1;//double
-					}else{
-						var1 = variableIdentifier(lval);
-					}
-					var2 = variableIdentifier(nval);
-					std::shared_ptr<Func_step_add> ts = std::make_shared<Func_step_add>(var1, var2);
-					ts->runner = &runner;
-					runner.steps.push_back(ts);
-					i++;
 				}
-			}else{
-				std::cerr<<"Error unable to parse +.  unable to find both lval and rval"<<std::endl;
-			}
-		}else if(tval == "-"){
-
-		}else if(tval == "*"){
-			if(i >= 1 && i+1<code.size()){
-				std::string lval = code[i-1];
-				std::string nval = code[i+1];
-				if(i >= 2){
-					//std::cout<<"Found multiplication"<<std::endl;
-					variableIdentifier var1;
-					
-					if(argsContains(args, lval)){
-						uint8_t type = argsFind(args, lval).second;
-						var1 = variableIdentifier(type);
-						lastType = type;
-					}else{
-						continue;
-					}
-					variableIdentifier var2(nval);
-					std::shared_ptr<Func_step_mul> ts = std::make_shared<Func_step_mul>(var1, var2);
+			}else if(tval == "-"){
+				if(i+1 < code.size()){
+					i++;
+					std::string nval = code[i];
+					auto [varN, type] = getVar(code, args, tempCount, tempVars, lastType, i);
+					variableIdentifier varP = variableIdentifier(type);
+					std::shared_ptr<Func_step_sub> ts = std::make_shared<Func_step_sub>(varP, varN);
 					ts->runner = &runner;
 					runner.steps.push_back(ts);
-					i++;
-				}else{
-					//std::cout<<"Found initial mul"<<std::endl;
-					variableIdentifier var1;
-					variableIdentifier var2;
-					//i == 1
-					if(isNumber(lval)){
-						double n = std::stod(lval);
-						var1 = variableIdentifier((double)n);
-						//std::cout<<"var literal type: "<<(int)var1.literalType<<std::endl;
-						//std::cout<<"var temp type: "<<(int)var1.tempType<<std::endl;
-					}else{
-						var1 = variableIdentifier(lval);
-					}
-					if(argsContains(tempVars, nval)){
-						lastType = argsFind(tempVars, nval).second;
-					}else if(argsContains(args, nval)){
-						lastType = argsFind(args, nval).second;
-					}else{
-						std::cerr<<"Error failed to find multiplication second arg type."<<std::endl;
-					}
-					var2 = variableIdentifier(nval);
-					std::shared_ptr<Func_step_mul> ts = std::make_shared<Func_step_mul>(var1, var2);
-					ts->runner = &runner;
-					runner.steps.push_back(ts);
-					i++;
 				}
-			}else{
-				std::cerr<<"Error unable to parse +.  unable to find both lval and rval"<<std::endl;
-			}
-		}else if(tval == "/"){
 
+			}else if(tval == "*"){
+				if(i+1 < code.size()){
+					i++;
+					std::string nval = code[i];
+					auto [varN, type] = getVar(code, args, tempCount, tempVars, lastType, i);
+					uint8_t pType;
+					if(type == 1){
+						pType = lastType;
+					}else{
+						pType = 1;
+					}
+					variableIdentifier varP = variableIdentifier(pType);
+					std::shared_ptr<Func_step_mul> ts = std::make_shared<Func_step_mul>(varP, varN);
+					ts->runner = &runner;
+					runner.steps.push_back(ts);
+				}
+			}else if(tval == "/"){
+				if(i+1 < code.size()){
+					i++;
+					std::string nval = code[i];
+					auto [varN, type] = getVar(code, args, tempCount, tempVars, lastType, i);
+					uint8_t pType;
+					if(type == 1){
+						pType = lastType;
+					}else{
+						pType = 1;
+					}
+					variableIdentifier varP = variableIdentifier(pType);
+					std::shared_ptr<Func_step_div> ts = std::make_shared<Func_step_div>(varP, varN);
+					ts->runner = &runner;
+					runner.steps.push_back(ts);
+				}
+
+			}
 		}
 	}
-	//std::cout<<"Returning lastType: "<<(int)lastType<<std::endl;
 	return(lastType);
 }
 

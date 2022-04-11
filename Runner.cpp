@@ -6,7 +6,13 @@ void Func_step::apply(){}
 
 Func_step_func::Func_step_func(){}
 
-Func_step_func::Func_step_func(std::function<void(Func_runner*)> f){
+Func_step_func::Func_step_func(std::function<void(Func_runner*, const variableIdentifier& var)> f, const variableIdentifier& v){
+	if(f){
+		var = v;
+		func = f;
+	}
+}
+Func_step_func::Func_step_func(std::function<void(Func_runner*, const variableIdentifier& var)> f){
 	if(f){
 		func = f;
 	}
@@ -14,7 +20,7 @@ Func_step_func::Func_step_func(std::function<void(Func_runner*)> f){
 
 void Func_step_func::apply(){
 	if(func){
-		func(runner);
+		func(runner, var);
 	}
 }
 
@@ -414,7 +420,7 @@ void Func_step_loadToReg::apply(){
 			std::cerr<<"Unable to get variable value."<<std::endl;
 			return;
 		}
-	}else{	
+	}else{
 		std::cerr<<"Unknown type: "<<(int)val.getType(runner)<<std::endl;
 	}
 }

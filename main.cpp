@@ -62,4 +62,9 @@ int main() {
 	Parser p3;
 	auto p3_tr = p3.parseFromStr(custom_tr3);
 	p3_tr->getMatRep().print();
+	std::string custom_tr4 = "T:M3x3->M3x3 T(x)=tr x";
+	std::cout<<"Custom transformation 4: "<<custom_tr4<<std::endl;
+	Parser p4;
+	auto p4_tr = p4.parseFromStr(custom_tr4);
+	p4_tr->getMatRep().print();
 }

@@ -21,6 +21,7 @@ public:
 	void generateSteps(const std::string& body, const std::vector<std::pair<std::string, uint8_t>>& args);
 	uint8_t parseBrackets(std::vector<bracketType>* brackets, const std::vector<std::pair<std::string, uint8_t>>& args, unsigned int& a, std::vector<std::pair<std::string, uint8_t>>& tempVars);
 	uint8_t parseCode(const std::vector<std::string>& code, const std::vector<std::pair<std::string, uint8_t>>& args, unsigned int& a, std::vector<std::pair<std::string, uint8_t>>& tempVars);
+	std::pair<variableIdentifier, uint8_t> getVar(const std::vector<std::string>& code, const std::vector<std::pair<std::string, uint8_t>>& args, unsigned int& tempCount, std::vector<std::pair<std::string, uint8_t>>& tempVars, uint8_t& lastType, unsigned int& i);
 	Func_runner runner;
 	template<class T> T createSpace(const std::string& ty){
 		if constexpr (std::is_same_v<T, Real>){
