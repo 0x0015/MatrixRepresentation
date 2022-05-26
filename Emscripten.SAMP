@@ -1,0 +1,6 @@
+CXX : em++
+OUT : em_build/MatrixRepresentation.js
+BUILD_CXX_FLAGS : -g -std=c++17
+LINK_OPTS : -s WASM=1 -s EXPORTED_RUNTIME_METHODS=ccall,cwrap -s ASSERTIONS=1 WebCpp-Interaction-Lib/libInteraction.a
+PLATFORM_OBJS : em_main.cpp.o
+EXTRA_CLEAN : em_build/MatrixRepresentation.wasm
