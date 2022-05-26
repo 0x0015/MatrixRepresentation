@@ -1,0 +1,2 @@
+T:R^3->R^3 T(x)=2*x
+T:M3x3->M3x3 T(x)=tr x
