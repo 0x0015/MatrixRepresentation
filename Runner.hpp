@@ -15,6 +15,7 @@ public:
 	Func_runner* runner;
 	virtual void apply();
 	Func_step();
+	virtual std::string toString();
 };
 
 
@@ -72,6 +73,7 @@ public:
 			return(std::nullopt);
 		}
 	}
+	void printSteps();
 	void run();
 	Func_runner();
 };
@@ -134,6 +136,7 @@ public:
 	Func_step_func();
 	Func_step_func(std::function<void(Func_runner*, const variableIdentifier&)> f, const variableIdentifier& v);
 	Func_step_func(std::function<void(Func_runner*, const variableIdentifier&)> f);
+	std::string toString();
 };
 
 class Func_step_add : public Func_step{
@@ -142,6 +145,7 @@ public:
 	void apply();
 	Func_step_add();
 	Func_step_add(const variableIdentifier& arg1, const variableIdentifier& arg2);
+	std::string toString();
 };
 
 class Func_step_sub : public Func_step{
@@ -150,6 +154,7 @@ public:
 	void apply();
 	Func_step_sub();
 	Func_step_sub(const variableIdentifier& arg1, const variableIdentifier& arg2);
+	std::string toString();
 };
 
 class Func_step_mul : public Func_step{
@@ -158,6 +163,7 @@ public:
 	void apply();
 	Func_step_mul();
 	Func_step_mul(const variableIdentifier& arg1, const variableIdentifier& arg2);
+	std::string toString();
 };
 
 class Func_step_div : public Func_step{
@@ -166,6 +172,7 @@ public:
 	void apply();
 	Func_step_div();
 	Func_step_div(const variableIdentifier& arg1, const variableIdentifier& arg2);
+	std::string toString();
 };
 
 class Func_step_createVector : public Func_step{
@@ -174,6 +181,7 @@ public:
 	void apply();
 	Func_step_createVector();
 	Func_step_createVector(const std::vector<variableIdentifier>& a);
+	std::string toString();
 };
 
 class Func_step_loadFromTemp : public Func_step{
@@ -183,6 +191,7 @@ public:
 	void apply();
 	Func_step_loadFromTemp();
 	Func_step_loadFromTemp(const variableIdentifier& a1, const std::string& n);
+	std::string toString();
 };
 
 class Func_step_loadToReg : public Func_step{
@@ -191,4 +200,5 @@ public:
 	void apply();
 	Func_step_loadToReg();
 	Func_step_loadToReg(const variableIdentifier& v);
+	std::string toString();
 };

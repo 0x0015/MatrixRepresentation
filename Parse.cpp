@@ -226,7 +226,7 @@ std::pair<variableIdentifier, uint8_t> Parser::getVar(const std::vector<std::str
 	}else if(argsContains(tempVars, tok)){
 		type = argsFind(tempVars, tok).second;
 		varI = variableIdentifier(tok);
-	}else if(builtins.find(tok) != 0 && i+1 < code.size()){
+	}else if(builtins.count(tok) != 0 && i+1 < code.size()){//std::unordered_map.contains is c++20
 		i++;
 		std::string nval = code[i];
 		auto [varP, pt] = getVar(code, args, tempCount, tempVars, lastType, i);
@@ -235,12 +235,14 @@ std::pair<variableIdentifier, uint8_t> Parser::getVar(const std::vector<std::str
 		ts->runner = &runner;
 		runner.steps.push_back(ts);
 		type = t;
+		varI = variableIdentifier(type);//FINALLY A SOLUTION
 	}else{
 		std::cerr<<"Unable to determine type.  defaulting to last type."<<std::endl;
 		varI = variableIdentifier(lastType);
 		type = lastType;
 	}
-	std::cout<<"returning type: "<<(int)type<<std::endl;
+	//std::cout<<"returning type: "<<(int)type<<std::endl;
+	//std::cout<<"returning variableIdentifier: name: "<<varI.name<<", tempType: "<<(int)varI.tempType<<", literalType: "<<(int)varI.literalType<<std::endl;
 	lastType = type;
 	return(std::make_pair(varI, type));
 }
@@ -251,6 +253,7 @@ uint8_t Parser::parseCode(const std::vector<std::string>& code, const std::vecto
 	for(unsigned int i=0;i<code.size();i++){
 		if(i == 0){
 			auto [varI, type] = getVar(code, args, tempCount, tempVars, lastType, i);
+			//std::cout<<"varI name: "<<varI.name<<std::endl;
 			std::shared_ptr<Func_step_loadToReg> ts = std::make_shared<Func_step_loadToReg>(varI);
 			ts->runner = &runner;
 			runner.steps.push_back(ts);
@@ -317,7 +320,7 @@ uint8_t Parser::parseCode(const std::vector<std::string>& code, const std::vecto
 }
 
 void Parser::generateSteps(const std::string& body, const std::vector<std::pair<std::string, uint8_t>>& args){
-	std::cout<<"Generating steps for: "<<body<<std::endl;
+	//std::cout<<"Generating steps for: "<<body<<std::endl;
 	std::vector<token*> tokens = tokenizeFromString(body);
 	/*for(auto& i : tokens){
 		std::cout<<i->value<<std::endl;

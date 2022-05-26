@@ -84,7 +84,7 @@ public:
 			}else if constexpr(std::is_same_v<typename T2::element, Matrix>){
 				t2n = 3;
 			}
-			std::cout<<"t1n: "<<(int)t1n<<", "<<"t2n: "<<(int)t2n<<std::endl;
+			//std::cout<<"t1n: "<<(int)t1n<<", "<<"t2n: "<<(int)t2n<<std::endl;
 			arg_types.push_back(std::make_pair(args, t1n));
 		}else{
 			std::vector<std::string> args_spl = SplitString(args, ",");
@@ -144,6 +144,7 @@ public:
 		};
 		std::shared_ptr<Transformation<T1, T2>> tr = std::make_shared<Transformation<T1, T2>>(V, W, func);
 		//std::cout<<"Successfuly parsed function"<<std::endl;
+		//runner.printSteps();
 		return(tr);
 	}
 	template<class T1> std::shared_ptr<Trs_base> determineType2(const std::string& name, const std::string& ty1, const std::string& ty2, const std::string& body){

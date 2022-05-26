@@ -6,6 +6,8 @@ void Func_step::apply(){}
 
 Func_step_func::Func_step_func(){}
 
+std::string Func_step::toString(){return "";}
+
 Func_step_func::Func_step_func(std::function<void(Func_runner*, const variableIdentifier& var)> f, const variableIdentifier& v){
 	if(f){
 		var = v;
@@ -24,11 +26,22 @@ void Func_step_func::apply(){
 	}
 }
 
+std::string Func_step_func::toString(){
+	return("FSF <?> : " + std::to_string((int)var.getType(runner)));
+}
+
 variableIdentifier::variableIdentifier(){}
+
 variableIdentifier::variableIdentifier(const std::string& n){
+	if(n == ""){
+		std::cout<<"Warning: creating variableIdentifier for a blank name"<<std::endl;
+	}
 	name = n;
 }
 variableIdentifier::variableIdentifier(uint8_t temp){
+	if(temp == 0){
+		std::cout<<"Warning: creating variableIdentifier for blank type"<<std::endl;
+	}
 	tempType = temp;
 }
 
@@ -61,6 +74,7 @@ uint8_t variableIdentifier::getType(const Func_runner* runner){
 			return(3);
 		}
 	}
+	std::cout<<"Failed to get variable type (name: \""<<name<<"\", tempType: "<<(int)tempType<<", literalType: "<<(int)literalType<<")"<<std::endl;
 	return(0);
 }
 
@@ -111,6 +125,10 @@ void Func_step_add::apply(){
 	}
 }
 
+std::string Func_step_add::toString(){
+	return("FSA : " + std::to_string((int)var1.getType(runner)) + "->" + std::to_string((int)var2.getType(runner)));
+}
+
 Func_step_sub::Func_step_sub(){}
 Func_step_sub::Func_step_sub(const variableIdentifier& arg1, const variableIdentifier& arg2){
 	var1 = arg1;
@@ -156,6 +174,10 @@ void Func_step_sub::apply(){
 		std::cerr<<"Error: sub has unequal arguement types. ("<<(int)var1.getType(runner)<<", "<<(int)var2.getType(runner)<<")"<<std::endl;
 		return;
 	}
+}
+
+std::string Func_step_sub::toString(){
+	return("FSS : " + std::to_string((int)var1.getType(runner)) + "->" + std::to_string((int)var2.getType(runner)));
 }
 
 Func_step_mul::Func_step_mul(){}
@@ -254,6 +276,10 @@ void Func_step_mul::apply(){
 	}
 }
 
+std::string Func_step_mul::toString(){
+	return("FSM : " + std::to_string((int)var1.getType(runner)) + "->" + std::to_string((int)var2.getType(runner)));
+}
+
 Func_step_div::Func_step_div(){}
 Func_step_div::Func_step_div(const variableIdentifier& arg1, const variableIdentifier& arg2){
 	var1 = arg1;
@@ -350,6 +376,10 @@ void Func_step_div::apply(){
 	}
 }
 
+std::string Func_step_div::toString(){
+	return("FSD : " + std::to_string((int)var1.getType(runner)) + "->" + std::to_string((int)var2.getType(runner)));
+}
+
 Func_step_createVector::Func_step_createVector(){}
 Func_step_createVector::Func_step_createVector(const std::vector<variableIdentifier>& a){
 	vars = a;
@@ -374,6 +404,10 @@ void Func_step_createVector::apply(){
 	runner->tempVector = output;
 }
 
+std::string Func_step_createVector::toString(){
+	return("FSCV");
+}
+
 Func_step_loadFromTemp::Func_step_loadFromTemp(){}
 Func_step_loadFromTemp::Func_step_loadFromTemp(const variableIdentifier& v, const std::string& n){
 	var = v;
@@ -393,6 +427,10 @@ void Func_step_loadFromTemp::apply(){
 	}else{
 		std::cerr<<"Error: cannot load unknown variable.  (name ="<<var.name<<")"<<std::endl;
 	}
+}
+
+std::string Func_step_loadFromTemp::toString(){
+	return("FLT : " + std::to_string((int)var.tempType) + " (actual: " + std::to_string((int)var.getType(runner)) + ")");
 }
 
 void Func_step_loadToReg::apply(){
@@ -421,7 +459,7 @@ void Func_step_loadToReg::apply(){
 			return;
 		}
 	}else{
-		std::cerr<<"Unknown type: "<<(int)val.getType(runner)<<std::endl;
+		std::cerr<<"LTR: Unknown type: "<<(int)val.getType(runner)<<std::endl;
 	}
 }
 
@@ -430,10 +468,20 @@ Func_step_loadToReg::Func_step_loadToReg(const variableIdentifier& v){
 	val = v;
 }
 
+std::string Func_step_loadToReg::toString(){
+	return("FLR : " + std::to_string((int)val.getType(runner)));
+}
+
 Func_runner::Func_runner(){}
 
 void Func_runner::run(){
 	for(unsigned int i=0;i<steps.size();i++){
 		steps[i]->apply();
+	}
+}
+
+void Func_runner::printSteps(){
+	for(auto& o : steps){
+		std::cout<<o->toString()<<std::endl;
 	}
 }
