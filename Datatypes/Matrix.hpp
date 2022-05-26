@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 class Matrix{
 public:
@@ -11,13 +12,18 @@ public:
 	Matrix(){
 		
 	}
-	void print(){
+	std::string toString(){
+		std::stringstream output;
 		for(auto& o : data){
 			for(int i=0;i<o.size();i++){
-				std::cout<<o[i]<<" ";
+				output<<o[i]<<" ";
 			}
-			std::cout<<std::endl;
+			output<<std::endl;
 		}
+		return output.str();
+	}
+	void print(){
+		std::cout<<toString();
 	}
 	Matrix(unsigned int m, unsigned int n){
 		std::vector<double> l;
